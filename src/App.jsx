@@ -1,28 +1,54 @@
-import { useState } from 'react'
+import React, { useEffect, useState } from 'react';
+import HeaderBar from './components/HeaderBar';
+import AuthPanel from './components/AuthPanel';
+import TaskManager from './components/TaskManager';
+import GoalsAndTimer from './components/GoalsAndTimer';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Restore auth from localStorage
+    const raw = localStorage.getItem('ff_user');
+    if (raw) {
+      try { setUser(JSON.parse(raw)); } catch {}
+    }
+  }, []);
+
+  const handleAuth = (data) => {
+    setUser(data);
+    localStorage.setItem('ff_user', JSON.stringify(data));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('ff_user');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-pink-50 text-slate-900">
+      <HeaderBar user={user} onLogout={handleLogout} />
 
-export default App
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        {!user ? (
+          <div className="text-center space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-3xl font-semibold tracking-tight">Stay organized and study with intention</h2>
+              <p className="text-slate-600 max-w-2xl mx-auto">Create tasks, set clear study goals with time estimates, and focus with a built-in timer that plays a sound when time is up.</p>
+            </div>
+            <AuthPanel onAuth={handleAuth} />
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-2 gap-6 items-start">
+            <TaskManager user={user} />
+            <GoalsAndTimer user={user} />
+          </div>
+        )}
+      </main>
+
+      <footer className="py-8 text-center text-sm text-slate-500">
+        Built for deep work. Stay focused and keep improving.
+      </footer>
+    </div>
+  );
+}
